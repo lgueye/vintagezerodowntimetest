@@ -1,0 +1,7 @@
+---
+
+- hosts: "{{source_env}}:&lb"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+      - { role: gor, gor_input: "--input-raw {{ groups['lb'] | intersect(groups[ vars['source_env'] ]) | first }}:80", gor_output: "--output-http=http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}:80", gor_service_enabled: yes}

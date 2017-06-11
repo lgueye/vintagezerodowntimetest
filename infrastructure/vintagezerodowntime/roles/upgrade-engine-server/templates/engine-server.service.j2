@@ -1,0 +1,9 @@
+[Unit]
+Description={{ app|json_query("backends[?name=='engine'] | [0].name") }}-server
+After=syslog.target
+
+[Service]
+ExecStart=/var/{{appname}}/{{ app|json_query("backends[?name=='engine'] | [0].name") }}-server.jar --server.port={{ app|json_query("backends[?name=='engine'] | [0].port ") }} --server.context-path=/{{ app|json_query("backends[?name=='engine'] | [0].name") }} --endpoints.shutdown.enabled=true --logging.file=/var/log/{{appname}}/{{ app|json_query("backends[?name=='engine'] | [0].name") }}-server.log --logging.config=/var/{{appname}}/logback-{{ app|json_query("backends[?name=='engine'] | [0].name") }}.xml --spring.datasource.driverClassName={{ app.db.driver }} --spring.datasource.username={{ app.db.name }} --spring.datasource.password={{ db_user_password }} --spring.datasource.url={{ db_url }} --spring.jpa.properties.hibernate.dialect={{ app.db.dialect }} --spring.jpa.show-sql={{ app.db.showSql }} --spring.jpa.hibernate.ddl-auto={{ app.db.ddlAuto }} --spring.datasource.validationQuery={{ app.db.validationQuery }} --spring.pid.file=/var/run/{{appname}}-{{ app|json_query("backends[?name=='engine'] | [0].name") }}-server.pid  --spring.pid.fail-on-write-error={{ app.pid.fail_on_write_error }}
+
+[Install]
+WantedBy=multi-user.target

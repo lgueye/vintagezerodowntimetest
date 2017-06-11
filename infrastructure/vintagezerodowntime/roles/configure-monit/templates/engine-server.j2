@@ -1,0 +1,3 @@
+check host {{ ansible_eth0.ipv4.address }} with address {{ ansible_eth0.ipv4.address }}
+   if failed port {{ app|json_query("backends[?name=='engine'] | [0].port") }} protocol http and request "{{ app|json_query("backends[?name=='engine'] | [0].name") }}/health" for 4 cycles then alert
+   alert {{ monitoring_email_user }} { connection, timeout }

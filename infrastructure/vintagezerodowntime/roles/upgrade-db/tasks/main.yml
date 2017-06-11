@@ -1,0 +1,11 @@
+---
+
+- name: 'unlink dbupgrader'
+  file: state='absent' path='/var/{{appname}}/dbupgrader.jar'
+  ignore_errors: yes
+
+- name: 'link dbupgrader'
+  file: state='link' src="{{ app.remote_revision_path }}/dbupgrader.jar" dest='/var/{{appname}}/dbupgrader.jar'
+
+- name: 'upgrade db'
+  command: java -jar /var/{{appname}}/dbupgrader.jar --datasource.driverClassName="{{ app.db.driver }}" --datasource.username="{{ app.db.name }}" --datasource.password="{{ db_user_password }}" --datasource.url="{{ local_db_url }}" --flyway.clean={{ clean_db }} --flyway.migrate={{ upgrade_db }} --logging.file="/var/log/{{appname}}/dbupgrader.log"

@@ -1,0 +1,10 @@
+---
+
+- name: "create {{ node_management_user }} user"
+  user: name="{{ node_management_user }}" shell=/bin/bash
+
+- name: "add authorized key to {{ node_management_user }}"
+  authorized_key: user="{{ node_management_user }}" key="{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+- name: "add {{ node_management_user }} to sudoers"
+  action: lineinfile dest='/etc/sudoers' regexp="{{ node_management_user }} ALL" line="{{ node_management_user }} ALL=(ALL:ALL) NOPASSWD:ALL" state='present'

@@ -1,0 +1,13 @@
+# Install roles from Ansible Galaxy
+- name: "ANXS.postgresql"
+  src: ANXS.postgresql
+
+- name: "nickhammond.logrotate"
+  src: nickhammond.logrotate
+
+# Install roles from github
+- name: "idealista gor"
+  src: http://github.com/idealista-tech/gor-role.git
+  scm: git
+  version: 0.0.3
+  name: gor

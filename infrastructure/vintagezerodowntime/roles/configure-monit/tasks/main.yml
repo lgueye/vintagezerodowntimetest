@@ -1,0 +1,17 @@
+---
+
+- name: 'ensure /etc/monit.d exists'
+  file: state='directory' dest="/etc/monit.d"
+
+- name: "configure monit for {{service_under_monitoring}}"
+  template:
+    src: "{{service_under_monitoring}}.j2"
+    dest: "/etc/monit.d/{{service_under_monitoring}}"
+    mode: 0644
+
+- name: "reload systemd"
+  command: systemctl daemon-reload
+
+- name: "restart monit.service"
+  service: name="monit.service" enabled='yes' state='restarted'
+

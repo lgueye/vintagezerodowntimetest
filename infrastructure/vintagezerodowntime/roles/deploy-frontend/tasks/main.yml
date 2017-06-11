@@ -1,0 +1,14 @@
+---
+
+- name: "ensure permissions on /var/www to 0755"
+  file: state='directory' path="/var/www" mode='0755'
+
+- name: "delete deploy dir /var/www/{{appname}}"
+  file: state='absent' path="/var/www/{{appname}}"
+
+- name: "create new deploy dir /var/www/{{appname}}/html"
+  file: state='directory' path="/var/www/{{appname}}/html"
+
+- name: "sychronize dist content to /var/www/{{appname}}/html"
+  synchronize: src="{{ app.local_project_path }}/frontends/dist/" dest="/var/www/{{appname}}/html/"
+

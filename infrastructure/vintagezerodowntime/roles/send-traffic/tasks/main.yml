@@ -1,0 +1,6 @@
+---
+
+- name: "sending traffic during {{ duration }} minutes to {{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}"
+  command: mvn gatling:execute -DskipTests=true -Dfindbugs.skip=true -Djacoco.skip=true -Dpmd.skip=true -Dvintagezerodowntime.engine.server.api.url=http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/{{ app|json_query("backends[?name=='engine'] | [0].name") }} -Dgatling.scenario.duration.in.minutes={{ duration }} -Dgatling.users.per.second=5
+  args:
+    chdir: "{{ app.local_project_path }}/backends/{{ appname }}-trafficgenerator"

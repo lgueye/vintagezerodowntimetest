@@ -1,0 +1,4 @@
+---
+galaxy_info:
+  author: Louis Gueye
+  description: An Ansible role to run send traffic during <duration> minutes to environment <target_env>

@@ -1,0 +1,21 @@
+---
+
+- name: 'install nginx'
+  apt: name="{{ item }}" state='present'
+  with_items:
+    - nginx
+
+- name: 'extrapolate nginx.conf'
+  template: src='nginx.conf.j2' dest="/etc/nginx/nginx.conf"
+
+- name: "disable default site"
+  file: state='absent' path="/etc/nginx/sites-enabled/default"
+
+- name: 'stop nginx'
+  service: name='nginx' enabled='yes' state='stopped'
+
+- name: 'start nginx'
+  service: name='nginx' enabled='yes' state='started'
+
+- name: 'wait for port {{ lb.port }} to come up'
+  wait_for: port="{{ lb.port }}" delay='1' timeout='10'

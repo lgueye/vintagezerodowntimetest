@@ -1,0 +1,9 @@
+---
+
+- hosts: "{{source_env}}:&lb"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  tasks:
+    - name: "stop replaying from {{ groups['lb'] | intersect(groups[ vars['source_env'] ]) | first }}:80 to {{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}:80"
+      service: name="gor" state='stopped'
+

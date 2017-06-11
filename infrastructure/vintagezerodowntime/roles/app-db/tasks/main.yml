@@ -1,0 +1,5 @@
+---
+
+- name: 'Allow backends to connect to database'
+  template: src='pg_hba.conf.j2' dest="/etc/postgresql/{{ db.version }}/main/pg_hba.conf"
+  notify: "restart postgresql"

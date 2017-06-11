@@ -1,0 +1,5 @@
+---
+
+dump_db:
+  localdir: '/tmp/db_dump'
+  file: '{{ app.db.name }}_`date +%s%3N`'

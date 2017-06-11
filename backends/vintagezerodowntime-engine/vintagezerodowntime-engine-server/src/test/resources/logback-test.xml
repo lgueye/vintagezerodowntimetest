@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true" scanPeriod="30 seconds">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout>
+            <pattern>%msg%n</pattern>
+        </layout>
+    </appender>
+    <logger name="org.diveintojee.poc.vintagezerodowntime"  level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    <logger name="org.springframework"  level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    <logger name="org.hibernate"  level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    <root>
+        <appender-ref ref="CONSOLE" level="WARN"/>
+    </root>
+</configuration>

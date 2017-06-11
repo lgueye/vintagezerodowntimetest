@@ -1,0 +1,6 @@
+check process postgresql with pidfile /var/run/postgresql/{{ db.version }}-main.pid
+  start program = "/bin/systemctl postgresql start"
+  stop program = "/bin/systemctl postgresql stop"
+  if failed host localhost port 5432 protocol pgsql then restart
+  if 5 restarts within 5 cycles then timeout
+  alert {{ monitoring_email_user }} { connection, timeout, pid }

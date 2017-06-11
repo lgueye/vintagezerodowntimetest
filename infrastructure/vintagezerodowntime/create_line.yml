@@ -1,0 +1,109 @@
+---
+
+- hosts: "localhost"
+  connection: 'local'
+  tasks:
+  - name: add to know hosts
+    shell: "ssh-keyscan -H -T 10 {{ item }} >> ~/.ssh/known_hosts"
+    with_items: "{{ groups[ vars['target_env'] ]}}"
+
+- hosts: "{{target_env}}"
+  remote_user: "root"
+  gather_facts: no
+  become: 'yes'
+  pre_tasks:
+    - name: 'install python2'
+      raw: sudo apt-get -y install python-simplejson
+  roles:
+  - {role: "security"}
+
+- hosts: "backends:&production"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  tasks:
+  - name: "register prod revision"
+    shell: "readlink /var/{{ appname }}/engine-server.jar | cut -d '/' -f '4'"
+    register: "production_rev_output"
+    when: target_env != 'production'
+  - name: "prod revision is {{ production_rev_output.stdout }}"
+    set_fact:
+      production_rev: "{{ production_rev_output.stdout }}"
+    when: target_env != 'production'
+
+- hosts: 'localhost'
+  connection: 'local'
+  roles:
+  - {role: 'clone-app', rev: "{{ hostvars[ groups['backends'] | intersect(groups['production']) | first]['production_rev'] }}", when: target_env != 'production'}
+  - {role: 'clone-app', rev: "{{ rev }}", when: target_env == 'production'}
+  tasks:
+  - name: "download monit"
+    get_url: url="https://mmonit.com/monit/dist/binary/{{monitoring.version}}/monit-{{monitoring.version}}-linux-x64.tar.gz" dest="/tmp/"
+  - name: "untar /tmp/monit-{{monitoring.version}}-linux-x64.tar.gz"
+    unarchive:
+      src: "/tmp/monit-{{monitoring.version}}-linux-x64.tar.gz"
+      dest: "/tmp"
+
+- hosts: "backends:db:&{{target_env}}"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+  - {role: 'java'}
+
+- hosts: "{{target_env}}:&db"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+  - {role: 'deploy-dbupgrader', rev: "{{ hostvars[ groups['backends'] | intersect(groups['production']) | first]['production_rev'] }}", when: target_env != 'production'}
+  - {role: 'deploy-dbupgrader', rev: "{{ rev }}", when: target_env == 'production'}
+
+- hosts: "{{target_env}}:&db"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+  - {role: 'app-db'}
+  - {role: 'dump-db', dump_db_password: "{{ hostvars[groups['production'] | intersect(groups['db']) | first]['db_user_password'] }}", dump_db_host: "{{ groups['production'] | intersect(groups['db']) | first }}", dump_db_user: "{{ app.db.name }}", when: target_env != 'production'}
+  - {role: 'upgrade-db', rev: "{{ hostvars[ groups['backends'] | intersect(groups['production']) | first]['production_rev'] }}", when: target_env != 'production'}
+  - {role: 'upgrade-db', rev: "{{ rev }}", when: target_env == 'production'}
+  - {role: 'import-db', when: target_env != 'production'}
+  - {role: "nickhammond.logrotate", logrotate_scripts: [{name: 'postgres_logrotate', path: '/var/log/postgresql/postgresql*.log', options: ["daily", "missingok", "notifempty", "compress", "rotate 30", "copytruncate"]}, {name: '{{ appname }}_logrotate', path: "{{ app.remote_root_log_path }}/{{ appname }}*.log", options: ["daily", "missingok", "notifempty", "compress", "rotate 30", "copytruncate"]}]}
+  - {role: 'monit'}
+  - {role: 'configure-monit', service_under_monitoring: 'postgresql'}
+
+- hosts: "{{target_env}}:&backends"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+  - {role: 'deploy-engine-server', rev: "{{ hostvars[ groups['backends'] | intersect(groups['production']) | first]['production_rev'] }}", when: target_env != 'production'}
+  - {role: 'deploy-engine-server', rev: "{{ rev }}", when: target_env == 'production'}
+  - {role: 'upgrade-engine-server', rev: "{{ hostvars[ groups['backends'] | intersect(groups['production']) | first]['production_rev'] }}", when: target_env != 'production'}
+  - {role: 'upgrade-engine-server', rev: "{{ rev }}", when: target_env == 'production'}
+  - {role: 'monit'}
+  - {role: 'configure-monit', service_under_monitoring: 'engine-server'}
+  - {role: "nickhammond.logrotate", logrotate_scripts: [{name: '{{ appname }}_logrotate', path: "{{ app.remote_root_log_path }}/{{ appname }}*.log", options: ["daily", "missingok", "notifempty", "compress", "rotate 30", "copytruncate"]}]}
+
+- hosts: "{{target_env}}:&lb"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+#  - {role: 'lb'}
+  - {role: 'deploy-frontend', rev: "{{ hostvars[ groups['backends'] | intersect(groups['production']) | first]['production_rev'] }}", when: target_env != 'production'}
+  - {role: 'deploy-frontend', rev: "{{ rev }}", when: target_env == 'production'}
+  - {role: 'upgrade-lb'}
+  - {role: "nickhammond.logrotate", logrotate_scripts: [{name: 'nginx_logrotate', path: "/var/log/nginx/*.log", options: ["daily", "missingok", "notifempty", "compress", "rotate 30", "copytruncate"]}]}
+  - {role: 'monit'}
+  - {role: 'configure-monit', service_under_monitoring: 'nginx'}
+  tasks:
+  - debug:
+      msg: "UI available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/index.html"
+  - debug:
+      msg: "API available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/engine/api"
+  - debug:
+      msg: "Health available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/engine/health"
+  - debug:
+      msg: "Websocket API available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/engine/ws-api"
+
+- hosts: 'localhost'
+  connection: 'local'
+  roles:
+  - {role: 'smoke-tests', rev: "{{ hostvars[ groups['backends'] | intersect(groups['production']) | first]['production_rev'] }}", when: target_env != 'production'}
+  - {role: 'smoke-tests', rev: "{{ rev }}", when: target_env == 'production'}

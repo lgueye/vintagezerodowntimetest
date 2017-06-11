@@ -1,0 +1,35 @@
+---
+
+# stop
+- name: "stop {{appname}}-engine-server"
+  service: name="{{appname}}-engine-server" state='stopped'
+  ignore_errors: 'yes'
+
+- name: 'unlink engine-server.jar older revision'
+  file: state='absent' dest="/var/{{appname}}/engine-server.jar"
+  ignore_errors: 'yes'
+
+- name: "link engine-server.jar to new revision"
+  file: state='link' src="{{ app.remote_revision_path }}/engine-server.jar" dest="/var/{{appname}}/engine-server.jar"
+
+- name: 'unlink logback-engine older revision'
+  file: state='absent' dest='/var/{{appname}}/logback-engine.xml'
+  ignore_errors: 'yes'
+
+- name: 'link logback-engine to new revision'
+  file: state='link' src="{{ app.remote_revision_path }}/logback-engine.xml" dest='/var/{{appname}}/logback-engine.xml'
+
+- name: 'extrapolate engine-server.service'
+  template: src='engine-server.service.j2' dest="/etc/systemd/system/{{appname}}-engine-server.service"
+
+- name: "reload systemd"
+  command: systemctl daemon-reload
+
+- name: "restart {{appname}}-engine-server"
+  service: name="{{appname}}-engine-server" enabled='yes' state='restarted'
+
+# wait for ports to be available
+- name: "wait for port {{ app|json_query(server_port_json_query) }} to be available"
+  wait_for: port="{{ app|json_query(server_port_json_query) }}" delay='1' timeout="{{ service.startup_timeout }}"
+  vars:
+    server_port_json_query: "backends[?name=='engine'] | [0].port"

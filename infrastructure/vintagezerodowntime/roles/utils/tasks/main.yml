@@ -1,0 +1,11 @@
+---
+- name: 'install util packages'
+  apt: name="{{ item }}" state='present' install_recommends='no' update_cache='no'
+  with_items:
+    - 'curl'
+    - 'vim'
+    - 'haveged'
+    - 'multitail'
+    - 'aptitude'
+    - 'tree'
+    - 'htop'

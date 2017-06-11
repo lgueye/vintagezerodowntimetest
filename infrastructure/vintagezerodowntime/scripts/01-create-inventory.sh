@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+cd ~/workspace/vintagezerodowntime-test/backends/vintagezerodowntime-boxprovider && java -jar target/vintagezerodowntime-boxprovider-0.0.1.jar --request='{"intent":"create","provider":"digitalocean","image":"ubuntu-16-04-x64","region":"fra1","specifications":[{"env":"production","boxes":[{"name":"db-master","size":"2gb"},{"name":"backends-01","size":"2gb"},{"name":"backends-02","size":"2gb"},{"name":"lb","size":"1gb"}]},{"env":"staging","boxes":[{"name":"db-master","size":"2gb"},{"name":"backends-01","size":"2gb"},{"name":"backends-02","size":"2gb"},{"name":"lb","size":"1gb"}]}]}'
+

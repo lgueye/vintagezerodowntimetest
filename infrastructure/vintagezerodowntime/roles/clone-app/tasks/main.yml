@@ -1,0 +1,22 @@
+---
+
+- name: "remove clone dir {{ app.local_project_path }}"
+  file: state='absent' dest="{{ app.local_project_path }}"
+
+- name: "cloning revision {{ rev }} to {{ app.local_project_path }}"
+  git: repo="{{ app.repo }}" dest="{{ app.local_project_path }}" version="{{ rev }}" accept_hostkey='true'
+
+- name: 'build backends'
+  command: mvn -T 2 install -Dfindbugs.skip=true -Djacoco.skip=true -Dpmd.skip=true -DskipTests=true
+  args:
+    chdir: "{{ app.local_project_path }}/backends"
+
+- name: '[frontend] download dev tools'
+  command: npm install --dev
+  args:
+    chdir: "{{ app.local_project_path }}/frontends"
+
+- name: '[frontend] build'
+  command: gulp --apiUrl=http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/{{ app|json_query("backends[?name=='engine'] | [0].name") }}/ws-api
+  args:
+    chdir: "{{ app.local_project_path }}/frontends"

@@ -1,0 +1,7 @@
+---
+
+- name: 'create new deploy dir'
+  file: state='directory' path="{{ app.remote_revision_path }}"
+
+- name: 'copy dbupgrader jar'
+  copy: src="{{ app.local_project_path }}/backends/{{appname}}-dbupgrader/target/{{appname}}-dbupgrader-0.0.1.jar" dest="{{ app.remote_revision_path }}/dbupgrader.jar" mode='u=xrw,g=xr,o=r'

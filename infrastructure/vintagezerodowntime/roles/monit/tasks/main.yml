@@ -1,0 +1,26 @@
+---
+
+- name: "copy binary to /usr/bin/monit"
+  copy:
+    src: "/tmp/monit-{{monitoring.version}}/bin/monit"
+    dest: "/usr/bin/monit"
+    mode: "u+x,g+x,o+r"
+
+- name: "copy config to /etc/monitrc"
+  template:
+    src: "monitrc.j2"
+    dest: "/etc/monitrc"
+    mode: 0700
+
+- name: "copy service definition to /etc/systemd/system/monit.service"
+  template:
+    src: "monit.service.j2"
+    dest: "/etc/systemd/system/monit.service"
+    mode: 0644
+
+- name: "reload systemd"
+  command: systemctl daemon-reload
+
+- name: "restart monit.service"
+  service: name="monit.service" enabled='yes' state='restarted'
+

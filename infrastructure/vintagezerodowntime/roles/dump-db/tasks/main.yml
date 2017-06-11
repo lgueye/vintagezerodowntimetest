@@ -1,0 +1,11 @@
+---
+
+- name: 'delete dump dir {{ dump_db.localdir }}'
+  file: state='absent' name='{{ dump_db.localdir }}'
+  ignore_errors: true
+
+- name: 'create dump dir {{ dump_db.localdir }}'
+  file: state='directory' name='{{ dump_db.localdir }}'
+
+- name: "dump database to {{ dump_db.localdir }}/{{ dump_db.file }}"
+  shell: "export PGPASSWORD={{ dump_db_password }} && pg_dump -h {{ dump_db_host }} -n public -U {{ dump_db_user }} -Fc {{ app.db.name }} > {{ dump_db.localdir }}/{{ dump_db.file }}"

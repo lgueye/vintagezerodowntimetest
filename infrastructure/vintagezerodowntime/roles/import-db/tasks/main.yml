@@ -1,0 +1,4 @@
+---
+
+- name: 'restore database'
+  shell: "pg_restore -U {{ app.db.name }} -d {{ app.db.name }} {{ dump_db.localdir }}/*"

@@ -1,0 +1,10 @@
+---
+
+- name: "create new deploy dir {{ app.remote_revision_path }}"
+  file: state='directory' path="{{ app.remote_revision_path }}"
+
+- name: 'copy engine-server jar to {{ app.remote_revision_path }}/{{appname}}-engine-server.jar'
+  copy: src="{{ app.local_project_path }}/backends/{{appname}}-engine/{{appname}}-engine-server/target/{{appname}}-engine-server-0.0.1.jar" dest="{{ app.remote_revision_path }}/engine-server.jar" mode='u=xrw,g=xr,o=r'
+
+- name: 'copy logback engine config'
+  copy: src="files/logback.xml" dest="{{ app.remote_revision_path }}/logback-engine.xml" mode='u=rw,g=rw,o=rw'

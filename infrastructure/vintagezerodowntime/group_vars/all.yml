@@ -1,0 +1,49 @@
+---
+
+appname: 'vintagezerodowntime'
+# empty will still allow to clone but will no set rev to the cloned sha1
+rev: ""
+node_management_user: "nodemanager"
+db:
+  port: 5432
+  version: '9.5'
+
+app:
+  repo: 'https://github.com/lgueye/{{ appname }}test.git'
+  local_project_path: "/tmp/{{ appname }}test/{{ rev }}"
+  local_app_path: "/var/{{ appname }}/{{ rev }}"
+  remote_root_path: "/var/{{ appname }}"
+  remote_revision_path: "/var/{{ appname }}/{{ rev }}"
+  remote_root_log_path: "/var/log/{{ appname }}"
+  db:
+    name: "{{ appname }}"
+    driver: 'org.postgresql.Driver'
+    dialect: 'org.hibernate.dialect.PostgreSQLDialect'
+    ddlAuto: 'validate'
+    validationQuery: 'SELECT 1'
+    showSql: 'false'
+  logging:
+    spring_logging_level: 'WARN'
+    app_logging_level: 'INFO'
+  pid:
+    fail_on_write_error: true
+  backends: [{name: 'engine', port: 9000, jmx_port: 9002}]
+
+# outside the app hierarchy otherwise it generates circular dependencies and breaks the template
+local_db_url: "jdbc:postgresql://localhost:{{ db.port }}/{{ app.db.name }}"
+db_url: "jdbc:postgresql://{{ groups['db'] | intersect(groups[ vars['target_env'] ]) | first }}:{{ db.port }}/{{ app.db.name }}"
+
+lb:
+  port: 80
+
+service:
+  startup_timeout: 180
+
+upgrade_db: "true"
+clean_db: "true"
+
+monitoring:
+  version: '5.21.0'
+  email:
+    host: "smtp.gmail.com"
+    port: "587"

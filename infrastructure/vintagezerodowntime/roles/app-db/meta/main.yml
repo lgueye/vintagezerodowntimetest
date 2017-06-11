@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Louis Gueye
+  description: An Ansible role to install and configure postgres.
+
+dependencies:
+  - { role: 'ANXS.postgresql', postgresql_version: "{{ db.version }}", postgresql_admin_user: 'postgres', postgresql_encoding: 'UTF-8', postgresql_default_auth_method: 'trust', postgresql_listen_addresses: ['*'], postgresql_databases: [{name: "{{ app.db.name }}", owner: "{{ app.db.name }}"}], postgresql_users: [{name: "{{ app.db.name }}", pass: "{{ db_user_password }}", encrypted: 'yes'}], postgresql_user_privileges: [{name: "{{ app.db.name }}", db: "{{ app.db.name }}", priv: 'ALL', role_attr_flags: 'CREATEDB'}]}

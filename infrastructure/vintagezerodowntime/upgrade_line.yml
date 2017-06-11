@@ -1,0 +1,36 @@
+# clone new revision
+- hosts: 'localhost'
+  connection: 'local'
+  roles:
+  - {role: 'clone-app', rev: "{{ rev }}"}
+
+# deploy new revision on remote host
+- hosts: "{{target_env}}:&db"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+  - {role: 'deploy-dbupgrader', rev: "{{ rev }}"}
+  - {role: 'upgrade-db'}
+
+- hosts: "{{target_env}}:&backends"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  tasks:
+  - name: "disable monitoring"
+    service: name='monit' state='stopped'
+  roles:
+  - {role: 'deploy-engine-server', rev: "{{ rev }}"}
+
+- hosts: "{{target_env}}:&backends"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  serial: 1
+  roles:
+  - {role: 'upgrade-engine-server'}
+
+- hosts: "{{target_env}}:&backends"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  tasks:
+  - name: "enable monitoring"
+    service: name='monit' state='started'
