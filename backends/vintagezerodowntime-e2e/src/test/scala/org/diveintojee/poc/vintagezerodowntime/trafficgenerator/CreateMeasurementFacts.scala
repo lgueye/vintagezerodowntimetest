@@ -8,15 +8,16 @@ import scala.util.Random
 
 class CreateMeasurementFacts extends Simulation {
 
-  def timestampRef() = Instant.now.toEpochMilli
   val baseUrl = System.getProperty("vintagezerodowntime.engine.server.api.url")
   val usersPerSec = System.getProperty("gatling.users.per.second").toDouble
   val injectionDurationInMinutes = System.getProperty("gatling.scenario.duration.in.minutes").toDouble
 
+  def timestampRef() = Instant.now.toEpochMilli
+
   object HeartRateFact {
 
     def valueRef() = Random.nextInt(220 - 80) + 80
-    val post = exec(http("new")
+    val post = exec(http("post_hart_rates")
       .post("/api/providers/medrate/facts")
       .body(StringBody(session => s"""{ "measurement": "heart_rate", "provider": "medrate", "deviceBusinessId": "D-8563461", "value": "${valueRef()}", "timestamp": "${timestampRef()}" }""")))
 
@@ -25,7 +26,7 @@ class CreateMeasurementFacts extends Simulation {
   object RespirationRateFact {
 
     def valueRef() = Random.nextInt(20 - 12) + 12
-    val post = exec(http("new")
+    val post = exec(http("post_hart_rates")
       .post("/api/providers/medrate/facts")
       .body(StringBody(session => s"""{ "measurement": "respiration_rate", "provider": "medrate", "deviceBusinessId": "D-8563461", "value": "${valueRef()}", "timestamp": "${timestampRef()}" }""")))
 
@@ -34,15 +35,12 @@ class CreateMeasurementFacts extends Simulation {
   val httpConf = http
     .baseURL(baseUrl)
     .header("Content-Type", "application/json")
-    .acceptHeader("application/json;q=0.9,*/*;q=0.8")
-    .doNotTrackHeader("1")
-    .acceptLanguageHeader("en-US,en;q=0.5")
-    .acceptEncodingHeader("gzip, deflate")
-    .userAgentHeader("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:16.0) Gecko/20100101 Firefox/16.0")
 
-  val postMeasurements = scenario("devices").exec(HeartRateFact.post, RespirationRateFact.post)
+  val postHeartRates = scenario("post_hart_rates").exec(HeartRateFact.post)
+  val postRespirationRates = scenario("post_respiration_rates").exec(RespirationRateFact.post)
 
   setUp(
-    postMeasurements.inject(constantUsersPerSec(usersPerSec) during(injectionDurationInMinutes minutes))
+    postHeartRates.inject(constantUsersPerSec(usersPerSec) during(injectionDurationInMinutes minutes)),
+    postRespirationRates.inject(constantUsersPerSec(usersPerSec) during(injectionDurationInMinutes minutes))
   ).protocols(httpConf)
 }
