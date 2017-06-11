@@ -1,6 +1,7 @@
 package org.diveintojee.poc.vintagezerodowntime.engineserver.persistence;
 
 import com.google.common.collect.Lists;
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 import org.diveintojee.poc.vintagezerodowntime.engineserver.domain.MeasurementFact;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,7 @@ public class MeasurementFactRepositoryTest {
     @Test
     public void findFirstByBusinessIdOrderByInsertedAtDescShouldSucceed() throws Exception {
         // Given
+        final Measurement measurement = Measurement.heart_rate;
         final String deviceBusinessId = "device-bid";
         final String provider = "provider";
         final int value = 121;
@@ -43,8 +45,8 @@ public class MeasurementFactRepositoryTest {
         final long timestamp = now.toEpochMilli();
         final String businessId = "bid";
 
-        MeasurementFact h0 = MeasurementFact.of(deviceBusinessId, provider, value, timestamp, businessId, now.plusMillis(5).toEpochMilli());
-        MeasurementFact h1 = MeasurementFact.of(deviceBusinessId, provider, value, timestamp, businessId, now.plusMillis(3).toEpochMilli());
+        MeasurementFact h0 = MeasurementFact.of(measurement, deviceBusinessId, provider, value, timestamp, businessId, now.plusMillis(5).toEpochMilli());
+        MeasurementFact h1 = MeasurementFact.of(measurement, deviceBusinessId, provider, value, timestamp, businessId, now.plusMillis(3).toEpochMilli());
         underTest.save(Lists.newArrayList(h0, h1));
 
         // When

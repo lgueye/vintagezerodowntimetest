@@ -1,6 +1,7 @@
 package org.diveintojee.poc.vintagezerodowntime.e2e.steps;
 
 import org.assertj.core.util.Lists;
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 import org.diveintojee.poc.vintagezerodowntime.dto.MeasurementFactDTO;
 import org.diveintojee.poc.vintagezerodowntime.engineclient.EngineClient;
 import org.jbehave.core.annotations.Then;
@@ -39,9 +40,10 @@ public class EngineSteps {
 	public void findFactsByCriteria(ExamplesTable rows) {
 		final List<MeasurementFactDTO> criteria = rows.getRowsAs(MeasurementFactDTO.class);
 		final MeasurementFactDTO firstCriterion = criteria.iterator().next();
+		final Measurement measurement = firstCriterion.getMeasurement();
 		final String deviceBusinessId = firstCriterion.getDeviceBusinessId();
 		final String provider = firstCriterion.getProvider();
-		results = engineClient.findMeasurementFactsByCriteria(MeasurementFactDTO.of(deviceBusinessId, provider));
+		results = engineClient.findMeasurementFactsByCriteria(MeasurementFactDTO.of(measurement, deviceBusinessId, provider));
 	}
 
 	@Then("the following facts were persisted: $rows")

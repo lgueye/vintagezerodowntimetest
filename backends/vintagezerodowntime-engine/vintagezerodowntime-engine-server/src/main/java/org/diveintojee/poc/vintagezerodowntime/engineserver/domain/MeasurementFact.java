@@ -2,6 +2,7 @@ package org.diveintojee.poc.vintagezerodowntime.engineserver.domain;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -9,6 +10,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "measurement_facts_timeline", indexes = {@Index(name = "idx_measurement_facts_timeline_measurement_fact_bid", columnList = "measurement_fact_bid"),
 		@Index(name = "idx_measurement_facts_timeline_insat", columnList = "inserted_at"),
+		@Index(name = "idx_measurement_facts_timeline_measurement", columnList = "measurement"),
 		@Index(name = "idx_measurement_facts_timeline_uniq", columnList = "measurement_fact_bid,inserted_at", unique = true)})
 public class MeasurementFact {
 
@@ -28,6 +30,11 @@ public class MeasurementFact {
 	@Column(name = "device_bid", nullable = false)
 	@NotNull
 	private String deviceBusinessId;
+
+	@Column(nullable = false)
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	private Measurement measurement;
 
 	@Column(nullable = false)
 	@NotNull
@@ -97,6 +104,14 @@ public class MeasurementFact {
 		this.timestamp = timestamp;
 	}
 
+	public Measurement getMeasurement() {
+		return measurement;
+	}
+
+	public void setMeasurement(Measurement measurement) {
+		this.measurement = measurement;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -118,14 +133,16 @@ public class MeasurementFact {
 				.add("insertedAt", insertedAt)
 				.add("businessId", businessId)
 				.add("deviceBusinessId", deviceBusinessId)
+				.add("measurement", measurement)
 				.add("provider", provider)
 				.add("value", value)
 				.add("timestamp", timestamp)
 				.toString();
 	}
 
-	public static MeasurementFact of(String deviceBusinessId, String provider, Integer value, Long timestamp, String businessId, Long instant) {
+	public static MeasurementFact of(Measurement measurement, String deviceBusinessId, String provider, Integer value, Long timestamp, String businessId, Long instant) {
 		MeasurementFact fact = new MeasurementFact();
+		fact.setMeasurement(measurement);
 		fact.setDeviceBusinessId(deviceBusinessId);
 		fact.setProvider(provider);
 		fact.setValue(value);

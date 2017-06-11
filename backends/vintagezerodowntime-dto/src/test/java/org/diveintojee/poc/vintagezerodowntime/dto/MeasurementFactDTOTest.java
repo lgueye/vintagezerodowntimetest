@@ -16,14 +16,16 @@ public class MeasurementFactDTOTest {
         // Given
         String deviceBusinessId = "any-device-bid";
         String provider = "any-provider";
+        Measurement measurement = Measurement.heart_rate;
         Integer value = 5;
         Long timestamp = Instant.now().toEpochMilli();
         String businessId = "any-bid";
 
         // When
-        MeasurementFactDTO actual = MeasurementFactDTO.of(deviceBusinessId, provider, value, timestamp, businessId);
+        MeasurementFactDTO actual = MeasurementFactDTO.of(measurement, deviceBusinessId, provider, value, timestamp, businessId);
 
         // Then
+        assertEquals(measurement, actual.getMeasurement());
         assertEquals(deviceBusinessId, actual.getDeviceBusinessId());
         assertEquals(provider, actual.getProvider());
         assertEquals(value, actual.getValue());

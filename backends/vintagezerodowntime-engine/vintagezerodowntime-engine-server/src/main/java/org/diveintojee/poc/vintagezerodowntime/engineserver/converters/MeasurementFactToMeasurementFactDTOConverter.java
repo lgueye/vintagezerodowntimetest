@@ -15,6 +15,7 @@ public class MeasurementFactToMeasurementFactDTOConverter implements Converter<M
     public MeasurementFactDTO convert(MeasurementFact source) {
         if (source == null) return null;
         MeasurementFactDTO target = new MeasurementFactDTO();
+        target.setMeasurement(source.getMeasurement());
         target.setBusinessId(source.getBusinessId());
         target.setDeviceBusinessId(source.getDeviceBusinessId());
         target.setProvider(source.getProvider());

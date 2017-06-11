@@ -1,6 +1,7 @@
 package org.diveintojee.poc.vintagezerodowntime.engineserver.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 import org.diveintojee.poc.vintagezerodowntime.dto.MeasurementFactDTO;
 import org.diveintojee.poc.vintagezerodowntime.engineserver.service.MeasurementFactService;
 import org.junit.Before;
@@ -39,11 +40,12 @@ public class HardwareProviderResourceTest {
     @Test
     public void createShouldSucceed() throws Exception {
         // Given
+        final Measurement measurement = Measurement.respiration_rate;
         final String deviceBusinessId = "device-bid";
         final String provider = "provider";
         final String businessId = "b0";
-        MeasurementFactDTO source = MeasurementFactDTO.of(deviceBusinessId, provider,  94, 78L, businessId);
-        MeasurementFactDTO expected = MeasurementFactDTO.of(deviceBusinessId, provider,  94, 78L, businessId);;
+        MeasurementFactDTO source = MeasurementFactDTO.of(measurement, deviceBusinessId, provider,  94, 78L, businessId);
+        MeasurementFactDTO expected = MeasurementFactDTO.of(measurement, deviceBusinessId, provider,  94, 78L, businessId);;
         when(service.create(provider, source)).thenReturn(expected);
 
         // When

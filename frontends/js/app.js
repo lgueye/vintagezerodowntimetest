@@ -1,21 +1,21 @@
 /* inject:env */
 
-var apiUrl = 'http://localhost:9000/ws-api';
+let apiUrl = 'http://localhost:9000/ws-api';
 
 /* endinject */
 
-var stompClient = null;
-var myNewChart = null;
+let stompClient = null;
+let heartRateChart = null;
+let respirationRateChart = null;
 
 $(function () {
-    var ctx = $("#hrf-chart").get(0).getContext("2d");
-    myNewChart = new Chart(ctx, {
+    heartRateChart = new Chart($("#heart-rates-chart").get(0).getContext("2d"), {
         type: 'bar',
         data: {
             labels: [],
             datasets: [
                 {
-                    label: "heart rate facts",
+                    label: "D-8563461 (Heart rate facts)",
                     backgroundColor: [],
                     borderColor: [],
                     borderWidth: 1,
@@ -27,6 +27,58 @@ $(function () {
             responsive: true,
             legend: {
                 position: 'top'
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+
+        }
+    });
+    respirationRateChart = new Chart($("#respiration-rates-chart").get(0).getContext("2d"), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: "D-8563461 (Respiration rate facts)",
+                    backgroundColor: [],
+                    borderColor: [],
+                    borderWidth: 1,
+                    data: [],
+                    fill: false,
+                    lineTension: 0.1,
+                    borderCapStyle: 'butt',
+                    borderDash: [],
+                    borderDashOffset: 0.0,
+                    borderJoinStyle: 'miter',
+                    pointBorderColor: [],
+                    pointBackgroundColor: "#fff",
+                    pointBorderWidth: 1,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: [],
+                    pointHoverBorderColor: [],
+                    pointHoverBorderWidth: 2,
+                    pointRadius: 1,
+                    pointHitRadius: 10,
+                    spanGaps: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            legend: {
+                position: 'top'
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
             }
         }
     });
@@ -53,17 +105,17 @@ function setConnected(connected) {
 }
 
 function connect() {
-    var socket = new SockJS(apiUrl);
+    let socket = new SockJS(apiUrl);
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
         setConnected(true);
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/D-8563461', function (fact) {
-            var value = JSON.parse(fact.body).value;
-            var ts = JSON.parse(fact.body).timestamp;
-            var chartModel = myNewChart.data;
-            var chartLabels = chartModel.labels;
-            var chartFirstDataSet = chartModel.datasets[0];
+        stompClient.subscribe('/topic/D-8563461/heart_rate', function (fact) {
+            let value = JSON.parse(fact.body).value;
+            let ts = JSON.parse(fact.body).timestamp;
+            let chartModel = heartRateChart.data;
+            let chartLabels = chartModel.labels;
+            let chartFirstDataSet = chartModel.datasets[0];
             if (chartFirstDataSet.data.length > 50) {
                 chartLabels.shift();
                 chartFirstDataSet.data.shift();
@@ -72,9 +124,33 @@ function connect() {
             }
             chartLabels.push(moment(ts).format("DD MMM HH:mm:ss"));
             chartFirstDataSet.data.push(value);
+            chartFirstDataSet.backgroundColor.push('rgba(75,192,192,0.4)');
+            chartFirstDataSet.borderColor.push('rgba(75,192,192,1)');
+            heartRateChart.update();
+        });
+        stompClient.subscribe('/topic/D-8563461/respiration_rate', function (fact) {
+            let value = JSON.parse(fact.body).value;
+            let ts = JSON.parse(fact.body).timestamp;
+            let chartModel = respirationRateChart.data;
+            let chartLabels = chartModel.labels;
+            let chartFirstDataSet = chartModel.datasets[0];
+            if (chartFirstDataSet.data.length > 50) {
+                chartLabels.shift();
+                chartFirstDataSet.data.shift();
+                chartFirstDataSet.backgroundColor.shift();
+                chartFirstDataSet.borderColor.shift();
+                chartFirstDataSet.pointBorderColor.shift();
+                chartFirstDataSet.pointHoverBackgroundColor.shift();
+                chartFirstDataSet.pointHoverBorderColor.shift();
+            }
+            chartLabels.push(moment(ts).format("DD MMM HH:mm:ss"));
+            chartFirstDataSet.data.push(value);
             chartFirstDataSet.backgroundColor.push('rgba(75, 192, 192, 0.2)');
             chartFirstDataSet.borderColor.push('rgba(75, 192, 192, 1)');
-            myNewChart.update();
+            chartFirstDataSet.pointBorderColor.push('rgba(75,192,192,1)');
+            chartFirstDataSet.pointHoverBackgroundColor.push('rgba(75,192,192,1)');
+            chartFirstDataSet.pointHoverBorderColor.push('rgba(220,220,220,1)');
+            respirationRateChart.update();
         });
     });
 }

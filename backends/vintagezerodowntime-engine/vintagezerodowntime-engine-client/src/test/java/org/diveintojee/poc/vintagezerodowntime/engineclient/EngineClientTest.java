@@ -1,6 +1,7 @@
 package org.diveintojee.poc.vintagezerodowntime.engineclient;
 
 import org.assertj.core.util.Lists;
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 import org.diveintojee.poc.vintagezerodowntime.dto.MeasurementFactDTO;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,9 +20,7 @@ import java.net.URI;
 import java.util.List;
 
 import static org.diveintojee.poc.vintagezerodowntime.engineclient.EngineClient.ENGINE_API_URL_KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,6 +48,7 @@ public class EngineClientTest {
 		RestTemplate httpClient = Mockito.mock(RestTemplate.class);
 		underTest.setHttpClient(httpClient);
 
+		final Measurement measurement = Measurement.heart_rate;
 		final String provider = "any-provider";
 		final String deviceBusinessId = "any-device-bid";
 
@@ -57,7 +57,7 @@ public class EngineClientTest {
 		ResponseEntity<MeasurementFactDTO> response = Mockito.mock(ResponseEntity.class);
 		when(httpClient.postForEntity(eq(uri), argumentCaptor.capture(), eq(MeasurementFactDTO.class))).thenReturn(response);
 		MeasurementFactDTO dto = mock(MeasurementFactDTO.class);
-		MeasurementFactDTO expected = MeasurementFactDTO.of(deviceBusinessId, provider);
+		MeasurementFactDTO expected = MeasurementFactDTO.of(measurement, deviceBusinessId, provider);
 		when(response.getBody()).thenReturn(expected);
 
 		// When

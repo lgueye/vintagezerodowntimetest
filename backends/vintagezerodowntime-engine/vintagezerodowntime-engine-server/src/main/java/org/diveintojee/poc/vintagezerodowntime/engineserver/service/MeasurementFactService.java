@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 @Component
 public class MeasurementFactService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementFactService.class);
-    static final String BUSINESSID_TEMPLATE = "%s-%s";
-    static final String DESTINATION_TEMPLATE = "/topic/%s";
+    static final String BUSINESSID_TEMPLATE = "%s-%s-%s";
+    static final String DESTINATION_TEMPLATE = "/topic/%s/%s";
     @Autowired
     private MeasurementFactRepository repository;
     @Autowired
@@ -40,32 +40,33 @@ public class MeasurementFactService {
 
     public MeasurementFactDTO create(String provider, MeasurementFactDTO dto) throws JsonProcessingException {
         dto.setProvider(provider);
+        final String measurement = dto.getMeasurement().name();
         final String deviceBusinessId = dto.getDeviceBusinessId();
-        final String businessId = String.format(BUSINESSID_TEMPLATE, deviceBusinessId, dto.getTimestamp());
+        final String businessId = String.format(BUSINESSID_TEMPLATE, measurement, deviceBusinessId, dto.getTimestamp());
         dto.setBusinessId(businessId);
         final MeasurementFact detached = dtoToDomainConverter.convert(dto);
         final long insertedAt = Instant.now().toEpochMilli();
         detached.setInsertedAt(insertedAt);
         final MeasurementFact persisted = repository.save(detached);
-        LOGGER.debug("Saved heart rate fact {}", persisted);
+        LOGGER.debug("Saved fact {}", persisted);
         final String factPayload = objectMapper.writeValueAsString(dto);
-        final String destination = String.format(DESTINATION_TEMPLATE, deviceBusinessId);
+        final String destination = String.format(DESTINATION_TEMPLATE, deviceBusinessId, measurement);
         messagingTemplate.convertAndSend(destination, factPayload);
-        LOGGER.debug("Sent heart rate fact {} to {}", factPayload, destination);
+        LOGGER.debug("Sent fact {} to {}", factPayload, destination);
         return domainToDtoConverter.convert(persisted);
     }
 
     public List<MeasurementFactDTO> findByCriteria(MeasurementFactDTO criteria) {
         final MeasurementFact example = dtoToDomainConverter.convert(criteria);
         final List<MeasurementFact> measurementFacts = repository.findAll(Example.of(example));
-        LOGGER.debug("Found {} heart rate facts for criteria {}", measurementFacts.size(), example);
+        LOGGER.debug("Found {} facts for criteria {}", measurementFacts.size(), example);
 
         return measurementFacts.stream()
                 // find all
                 .collect(Collectors.groupingBy(MeasurementFact::getBusinessId))
                 // group by account
                 .values().stream()
-                .map(heartRateFactsList -> heartRateFactsList.stream().sorted(Comparator.comparing(MeasurementFact::getInsertedAt).reversed()) // order
+                .map(factsList -> factsList.stream().sorted(Comparator.comparing(MeasurementFact::getInsertedAt).reversed()) // order
                         // by
                         // inserted
                         // at desc

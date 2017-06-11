@@ -34,7 +34,7 @@ public class HardwareProviderResource {
     @RequestMapping(method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<MeasurementFactDTO> create(@PathVariable("provider") String provider, @RequestBody MeasurementFactDTO source) throws JsonProcessingException {
         MeasurementFactDTO dto = service.create(provider, source);
-        LOGGER.debug("Saved heart rate fact {}", dto);
+        LOGGER.debug("Saved fact {}", dto);
         // Build URI
         final URI location = ServletUriComponentsBuilder.fromCurrentServletMapping()
                 .path("/api/facts/{businessId}").buildAndExpand(dto.getBusinessId())

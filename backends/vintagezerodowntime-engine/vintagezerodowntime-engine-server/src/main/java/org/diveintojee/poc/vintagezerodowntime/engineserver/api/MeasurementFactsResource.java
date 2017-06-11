@@ -18,7 +18,7 @@ public class MeasurementFactsResource {
 	private MeasurementFactService service;
 
 	/**
-	 * Finds heart rate facts by criteria
+	 * Finds measurements by criteria
 	 * @param criteria
 	 * @return
 	 */
@@ -28,7 +28,7 @@ public class MeasurementFactsResource {
 	}
 
 	/**
-	 * Fully loads heart rate fact
+	 * Fully loads measurements
 	 * @param businessId
 	 * @return
 	 */

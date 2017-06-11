@@ -1,5 +1,6 @@
 package org.diveintojee.poc.vintagezerodowntime.engineclient;
 
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 import org.diveintojee.poc.vintagezerodowntime.dto.MeasurementFactDTO;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,16 +24,19 @@ public class MeasurementFactDTOToMultiValueMapConverterTest {
     @Test
     public void convertShouldSucceed() throws Exception {
         // Given
+        final Measurement measurement = Measurement.heart_rate;
         String deviceBusinessId = "any-bid";
         String provider = "any-provider";
         Integer value = 152;
         Long timestamp = 1488359698000L;
-        MeasurementFactDTO source = MeasurementFactDTO.of(deviceBusinessId, provider, value, timestamp, null);
+        MeasurementFactDTO source = MeasurementFactDTO.of(measurement, deviceBusinessId, provider, value, timestamp, null);
 
         // When
         MultiValueMap<String, String> actual = underTest.convert(source);
 
         // Then
+        assertEquals(1, actual.get("measurement").size());
+        assertEquals(measurement.name(), actual.get("measurement").get(0));
         assertEquals(1, actual.get("deviceBusinessId").size());
         assertEquals(deviceBusinessId, actual.get("deviceBusinessId").get(0));
         assertEquals(1, actual.get("provider").size());

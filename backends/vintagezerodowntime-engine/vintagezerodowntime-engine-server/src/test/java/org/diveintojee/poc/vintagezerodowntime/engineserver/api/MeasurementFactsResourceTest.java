@@ -2,6 +2,7 @@ package org.diveintojee.poc.vintagezerodowntime.engineserver.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 import org.diveintojee.poc.vintagezerodowntime.dto.MeasurementFactDTO;
 import org.diveintojee.poc.vintagezerodowntime.engineserver.service.MeasurementFactService;
 import org.junit.Before;
@@ -43,19 +44,22 @@ public class MeasurementFactsResourceTest {
 
     @Test
     public void searchShouldSucceed() throws Exception {
+        final Measurement measurement = Measurement.heart_rate;
         final String deviceBusinessId = "device-bid";
         final String provider = "provider";
         MeasurementFactDTO example = new MeasurementFactDTO();
+        example.setMeasurement(measurement);
         example.setDeviceBusinessId(deviceBusinessId);
         example.setProvider(provider);
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("measurement", measurement.name());
         form.add("deviceBusinessId", deviceBusinessId);
         form.add("provider", provider);
 
-        MeasurementFactDTO h0 = MeasurementFactDTO.of(deviceBusinessId, provider, 94, 78L, "b0");
-        MeasurementFactDTO h1 = MeasurementFactDTO.of(deviceBusinessId, provider, 110, 125L, "b1");
-        MeasurementFactDTO h2 = MeasurementFactDTO.of(deviceBusinessId, provider, 120, 178L, "b2");
+        MeasurementFactDTO h0 = MeasurementFactDTO.of(measurement, deviceBusinessId, provider, 94, 78L, "b0");
+        MeasurementFactDTO h1 = MeasurementFactDTO.of(measurement, deviceBusinessId, provider, 110, 125L, "b1");
+        MeasurementFactDTO h2 = MeasurementFactDTO.of(measurement, deviceBusinessId, provider, 120, 178L, "b2");
         final List<MeasurementFactDTO> expected = Lists.newArrayList(h0, h1, h2);
         when(service.findByCriteria(example)).thenReturn(expected);
 
@@ -71,10 +75,11 @@ public class MeasurementFactsResourceTest {
     @Test
     public void loadShouldSucceed() throws Exception {
         // Given
+        final Measurement measurement = Measurement.respiration_rate;
         final String deviceBusinessId = "device-bid";
         final String provider = "provider";
         final String businessId = "b0";
-        MeasurementFactDTO expected = MeasurementFactDTO.of(deviceBusinessId, provider,  94, 78L, businessId);
+        MeasurementFactDTO expected = MeasurementFactDTO.of(measurement, deviceBusinessId, provider,  94, 78L, businessId);
         when(service.load(businessId)).thenReturn(expected);
 
         // When

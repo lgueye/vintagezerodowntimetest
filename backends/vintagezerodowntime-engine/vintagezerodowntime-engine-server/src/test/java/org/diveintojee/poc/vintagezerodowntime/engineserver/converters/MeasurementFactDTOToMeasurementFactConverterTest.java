@@ -1,5 +1,6 @@
 package org.diveintojee.poc.vintagezerodowntime.engineserver.converters;
 
+import org.diveintojee.poc.vintagezerodowntime.dto.Measurement;
 import org.diveintojee.poc.vintagezerodowntime.dto.MeasurementFactDTO;
 import org.diveintojee.poc.vintagezerodowntime.engineserver.domain.MeasurementFact;
 import org.junit.Before;
@@ -25,6 +26,8 @@ public class MeasurementFactDTOToMeasurementFactConverterTest {
     public void convertShouldSucceed() throws Exception {
         // Given
         MeasurementFactDTO source = new MeasurementFactDTO();
+        final Measurement measurement = Measurement.heart_rate;
+        source.setMeasurement(measurement);
         final String businessId = "bid";
         source.setBusinessId(businessId);
         final String deviceBusinessId = "device-bid";
@@ -40,6 +43,7 @@ public class MeasurementFactDTOToMeasurementFactConverterTest {
         final MeasurementFact actual = underTest.convert(source);
 
         // Then
+        assertEquals(measurement, actual.getMeasurement());
         assertEquals(businessId, actual.getBusinessId());
         assertEquals(deviceBusinessId, actual.getDeviceBusinessId());
         assertEquals(provider, actual.getProvider());
