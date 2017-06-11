@@ -15,17 +15,16 @@
 - hosts: "{{target_env}}:&backends"
   remote_user: "{{ node_management_user }}"
   become: 'yes'
-  tasks:
-  - name: "disable monitoring"
-    service: name='monit' state='stopped'
-  roles:
-  - {role: 'deploy-engine-server', rev: "{{ rev }}"}
 
 - hosts: "{{target_env}}:&backends"
   remote_user: "{{ node_management_user }}"
   become: 'yes'
   serial: 1
+  tasks:
+  - name: "disable monitoring"
+    service: name='monit' state='stopped'
   roles:
+  - {role: 'deploy-engine-server', rev: "{{ rev }}"}
   - {role: 'upgrade-engine-server'}
 
 - hosts: "{{target_env}}:&backends"
@@ -34,3 +33,23 @@
   tasks:
   - name: "enable monitoring"
     service: name='monit' state='started'
+
+- hosts: "{{target_env}}:&lb"
+  remote_user: "{{ node_management_user }}"
+  become: 'yes'
+  roles:
+  - {role: 'deploy-frontend', rev: "{{ rev }}"}
+  tasks:
+  - debug:
+      msg: "UI available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/index.html"
+  - debug:
+      msg: "API available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/engine/api"
+  - debug:
+      msg: "Health available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/engine/health"
+  - debug:
+      msg: "Websocket API available at http://{{ groups['lb'] | intersect(groups[ vars['target_env'] ]) | first }}/engine/ws-api"
+
+- hosts: 'localhost'
+  connection: 'local'
+  roles:
+  - {role: 'smoke-tests', rev: "{{ rev }}"}
